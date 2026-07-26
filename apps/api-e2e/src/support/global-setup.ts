@@ -1,7 +1,14 @@
 import { waitForPortOpen } from '@nx/node/utils';
 
 /* eslint-disable */
-var __TEARDOWN_MESSAGE__: string;
+
+// This file has an import, so it is a module - a bare `var` would be
+// module-scoped and type nothing. `declare global` is what actually augments
+// globalThis for global-teardown.ts, and it satisfies `noUnusedLocals`
+// (set in tsconfig.base.json) which the generated form did not.
+declare global {
+  var __TEARDOWN_MESSAGE__: string;
+}
 
 module.exports = async function () {
   // Start services that that the app needs to run (e.g. database, docker-compose, etc.).

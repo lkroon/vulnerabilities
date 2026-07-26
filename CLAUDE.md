@@ -41,19 +41,19 @@ and flag it rather than writing it.
 These were decided in SPEC.md §3 and in the planning session. Treat them as fixed
 inputs, not open questions.
 
-| Area | Choice |
-|---|---|
-| Monorepo | Nx 23, `apps/` + `libs/` layout |
-| Backend | NestJS |
-| Frontend | Angular (standalone, signals, zoneless) |
-| Shared contracts | `libs/shared-types` |
-| Validation | `class-validator` + global `ValidationPipe` |
-| Database | DynamoDB, single-table (SPEC.md §5) |
-| Deployment | **AWS serverless** — Lambda + API Gateway + S3/CloudFront |
-| Auth | **AWS Cognito**, provisioned from Pulumi |
-| IaC | Pulumi (TypeScript) |
-| CI | GitHub Actions |
-| Testing | Jest + supertest (API), Playwright (one happy-path E2E) |
+| Area             | Choice                                                    |
+| ---------------- | --------------------------------------------------------- |
+| Monorepo         | Nx 23, `apps/` + `libs/` layout                           |
+| Backend          | NestJS                                                    |
+| Frontend         | Angular (standalone, signals, zoneless)                   |
+| Shared contracts | `libs/shared-types`                                       |
+| Validation       | `class-validator` + global `ValidationPipe`               |
+| Database         | DynamoDB, single-table (SPEC.md §5)                       |
+| Deployment       | **AWS serverless** — Lambda + API Gateway + S3/CloudFront |
+| Auth             | **AWS Cognito**, provisioned from Pulumi                  |
+| IaC              | Pulumi (TypeScript)                                       |
+| CI               | GitHub Actions                                            |
+| Testing          | Jest + supertest (API), Playwright (one happy-path E2E)   |
 
 The scanner is a **service inside `apps/api`** for v1, with rules in
 `libs/scanner-rules`. Extract it to `apps/scanner` only if it earns it.

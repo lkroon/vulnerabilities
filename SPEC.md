@@ -48,17 +48,17 @@ beats a half-finished platform.**
 
 ## 3. Stack decisions (already made — do not re-litigate)
 
-| Area | Choice | Why |
-|---|---|---|
-| Monorepo | **Nx** | Purpose-built for the Angular+NestJS combo; enables the shared types lib |
-| Shared contracts | `libs/shared-types` | The headline TypeScript argument: one contract, compile-time enforced on both sides of the network boundary |
-| Backend | **NestJS** | Target-role stack; DI + module model transfers from Angular |
-| Validation | `class-validator` + global `ValidationPipe` | Runtime validation at the boundary — the analogue of Pydantic. Decorators are needed because TS types are erased at compile time |
-| Frontend | **Angular** (standalone components, signals, new control flow, `inject()`) | Target-role stack. Must be written modern — no NgModules, no constructor-injection-everywhere |
-| Database | **DynamoDB** (single-table) | See §5. Deliberately not Postgres |
-| IaC | **Pulumi** (TypeScript) | Target-role stack; infra in the same language as the app |
-| CI | GitHub Actions | Already know it; `pulumi preview` on PR, `pulumi up` on main |
-| Testing | Jest + supertest (API), Playwright (one happy-path E2E) | Enough to prove the habit, not a coverage exercise |
+| Area             | Choice                                                                     | Why                                                                                                                              |
+| ---------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Monorepo         | **Nx**                                                                     | Purpose-built for the Angular+NestJS combo; enables the shared types lib                                                         |
+| Shared contracts | `libs/shared-types`                                                        | The headline TypeScript argument: one contract, compile-time enforced on both sides of the network boundary                      |
+| Backend          | **NestJS**                                                                 | Target-role stack; DI + module model transfers from Angular                                                                      |
+| Validation       | `class-validator` + global `ValidationPipe`                                | Runtime validation at the boundary — the analogue of Pydantic. Decorators are needed because TS types are erased at compile time |
+| Frontend         | **Angular** (standalone components, signals, new control flow, `inject()`) | Target-role stack. Must be written modern — no NgModules, no constructor-injection-everywhere                                    |
+| Database         | **DynamoDB** (single-table)                                                | See §5. Deliberately not Postgres                                                                                                |
+| IaC              | **Pulumi** (TypeScript)                                                    | Target-role stack; infra in the same language as the app                                                                         |
+| CI               | GitHub Actions                                                             | Already know it; `pulumi preview` on PR, `pulumi up` on main                                                                     |
+| Testing          | Jest + supertest (API), Playwright (one happy-path E2E)                    | Enough to prove the habit, not a coverage exercise                                                                               |
 
 ### Deployment target — pick one before starting
 
@@ -122,8 +122,14 @@ Pattern → query:
 ### Example items
 
 ```json
-{ "PK": "ORG#acme", "SK": "PROJECT#api-gateway", "type": "project",
-  "name": "API Gateway", "repo": "acme/api-gateway", "defaultBranch": "main" }
+{
+  "PK": "ORG#acme",
+  "SK": "PROJECT#api-gateway",
+  "type": "project",
+  "name": "API Gateway",
+  "repo": "acme/api-gateway",
+  "defaultBranch": "main"
+}
 ```
 
 ```json
@@ -136,23 +142,46 @@ Pattern → query:
   "durationMs": 4210,
   "counts": { "critical": 1, "high": 3, "medium": 7 },
   "findings": [
-    { "kind": "npm_cve", "package": "lodash", "version": "4.17.20",
-      "cve": "CVE-2021-23337", "severity": "high", "fixedIn": "4.17.21",
-      "path": ["app", "express", "lodash"] },
-    { "kind": "terraform_misconfig", "resource": "aws_s3_bucket.logs",
-      "rule": "S3-001", "severity": "critical",
+    {
+      "kind": "npm_cve",
+      "package": "lodash",
+      "version": "4.17.20",
+      "cve": "CVE-2021-23337",
+      "severity": "high",
+      "fixedIn": "4.17.21",
+      "path": ["app", "express", "lodash"]
+    },
+    {
+      "kind": "terraform_misconfig",
+      "resource": "aws_s3_bucket.logs",
+      "rule": "S3-001",
+      "severity": "critical",
       "message": "public read access enabled",
-      "file": "modules/logging/main.tf", "line": 42 },
-    { "kind": "dockerfile", "rule": "DL3002", "severity": "medium",
-      "message": "last USER should not be root", "file": "Dockerfile", "line": 18 }
+      "file": "modules/logging/main.tf",
+      "line": 42
+    },
+    {
+      "kind": "dockerfile",
+      "rule": "DL3002",
+      "severity": "medium",
+      "message": "last USER should not be root",
+      "file": "Dockerfile",
+      "line": 18
+    }
   ]
 }
 ```
 
 ```json
-{ "PK": "PROJECT#api-gateway", "SK": "PKG#lodash@4.17.20", "type": "pkgIndex",
-  "GSI1PK": "PKG#lodash@4.17.20", "GSI1SK": "PROJECT#api-gateway",
-  "lastSeen": "2026-07-24", "ttl": 1790000000 }
+{
+  "PK": "PROJECT#api-gateway",
+  "SK": "PKG#lodash@4.17.20",
+  "type": "pkgIndex",
+  "GSI1PK": "PKG#lodash@4.17.20",
+  "GSI1SK": "PROJECT#api-gateway",
+  "lastSeen": "2026-07-24",
+  "ttl": 1790000000
+}
 ```
 
 The three findings share almost no fields. That heterogeneity is the argument for a

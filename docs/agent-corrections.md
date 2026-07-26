@@ -3,8 +3,8 @@
 Raw material for the AI-workflow write-up in M5 (SPEC.md §247). Each entry records
 something an agent got wrong, or would have got wrong, and why — not just the fix.
 
-The interesting entries are the ones where the agent's advice was *correct in
-general* and wrong *here*. Those are the cases that argue for reading agent
+The interesting entries are the ones where the agent's advice was _correct in
+general_ and wrong _here_. Those are the cases that argue for reading agent
 configuration rather than trusting it.
 
 ---
@@ -22,7 +22,7 @@ and a byte-identical copy into `.github/skills/`. One of them,
 `package.json` and resolves cross-project imports through tsconfig `paths`. That
 is not a shortcut — Angular does not support TypeScript project references
 (angular/angular#37276) and `@nx/angular` refuses to initialise against Nx 23's
-default solution setup. The tsconfig `paths` mapping is the *required* approach.
+default solution setup. The tsconfig `paths` mapping is the _required_ approach.
 
 **Why it would have bitten:** the skill's stated triggers include `TS2307` and
 "cannot find module" on `@org/*` imports — exactly the error produced by a typo in
@@ -105,7 +105,7 @@ NX   Successfully ran target serve for project api
 and exited. Nothing was listening on `:3000`. Exit code 0, "Successfully ran", no
 server.
 
-**Cause:** Nx 23 deduplicates *continuous* tasks across processes — if `api:serve`
+**Cause:** Nx 23 deduplicates _continuous_ tasks across processes — if `api:serve`
 is registered as running elsewhere, a second invocation waits rather than starting a
 duplicate. The agent had earlier stopped servers by killing PIDs directly, which
 never let Nx deregister the task, so the registry claimed a dead process still owned

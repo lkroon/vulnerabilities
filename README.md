@@ -12,18 +12,18 @@ Domain deliberately chosen to overlap with shift-left security and IaC scanning.
 
 ## Stack
 
-| Area | Choice |
-|---|---|
-| Monorepo | Nx 23 (`apps/` + `libs/`) |
-| Backend | NestJS |
-| Frontend | Angular (standalone, signals, zoneless) |
+| Area             | Choice                                       |
+| ---------------- | -------------------------------------------- |
+| Monorepo         | Nx 23 (`apps/` + `libs/`)                    |
+| Backend          | NestJS                                       |
+| Frontend         | Angular (standalone, signals, zoneless)      |
 | Shared contracts | `libs/shared-types` — imported by both sides |
-| Validation | `class-validator` + global `ValidationPipe` |
-| Database | DynamoDB, single-table |
-| Auth | AWS Cognito |
-| IaC | Pulumi (TypeScript) |
-| CI | GitHub Actions |
-| Testing | Jest + supertest, Playwright |
+| Validation       | `class-validator` + global `ValidationPipe`  |
+| Database         | DynamoDB, single-table                       |
+| Auth             | AWS Cognito                                  |
+| IaC              | Pulumi (TypeScript)                          |
+| CI               | GitHub Actions                               |
+| Testing          | Jest + supertest, Playwright                 |
 
 ## Layout
 
@@ -49,9 +49,9 @@ npm install
 npm run dev             # serves api on :3000 and web on :4200
 ```
 
-| URL | What |
-|---|---|
-| http://localhost:4200 | Angular app |
+| URL                       | What                                                 |
+| ------------------------- | ---------------------------------------------------- |
+| http://localhost:4200     | Angular app                                          |
 | http://localhost:4200/api | proxied to Nest — this is the path the frontend uses |
 | http://localhost:3000/api | Nest directly (note the `/api` prefix; `/` is a 404) |
 

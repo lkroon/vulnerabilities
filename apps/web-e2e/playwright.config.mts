@@ -37,19 +37,12 @@ export default defineConfig({
     cwd: workspaceRoot,
   },
   projects: [
+    // Chromium only. SPEC.md §61 asks for one happy-path E2E to prove the habit,
+    // not a cross-browser matrix — and each extra browser is another download in
+    // CI for no additional signal. Add firefox/webkit if a real need appears.
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-    },
-
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
     },
 
     // Uncomment for mobile browsers support
