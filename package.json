@@ -2,7 +2,14 @@
   "name": "@config-scanner/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "dev": "nx run-many -t serve --projects=api,web",
+    "build": "nx run-many -t build",
+    "test": "nx run-many -t test",
+    "lint": "nx run-many -t lint",
+    "verify": "nx affected -t lint test build",
+    "reset": "nx reset"
+  },
   "private": true,
   "devDependencies": {
     "@angular-devkit/core": "~22.0.4",

@@ -14,5 +14,10 @@
     "network": {
       "allowedDomains": ["www.google-analytics.com"]
     }
+  },
+  "skillOverrides": {
+    "link-workspace-packages": "off",
+    "monitor-ci": "off",
+    "nx-import": "off"
   }
 }

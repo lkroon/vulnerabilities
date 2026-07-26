@@ -46,8 +46,27 @@ CLAUDE.md         agent instructions / conventions
 ```bash
 nvm use                 # Node 22, pinned in .nvmrc
 npm install
-npx nx run-many -t build
+npm run dev             # serves api on :3000 and web on :4200
 ```
+
+| URL | What |
+|---|---|
+| http://localhost:4200 | Angular app |
+| http://localhost:4200/api | proxied to Nest — this is the path the frontend uses |
+| http://localhost:3000/api | Nest directly (note the `/api` prefix; `/` is a 404) |
+
+**Run both with one command.** `npm run dev` wraps
+`nx run-many -t serve --projects=api,web`, which starts both in a single Nx
+process. Two separate `nx serve` invocations also work, but if one is killed
+uncleanly the other reports `Waiting for <target> in another nx process` and
+exits without serving — `npm run reset` clears that stale task state.
+
+The web dev server proxies `/api` to `:3000` via `apps/web/proxy.conf.json`, so
+the frontend uses same-origin paths in dev exactly as it will in production,
+where CloudFront routes `/api` to API Gateway. No CORS config, no hardcoded host.
+
+Other scripts: `npm run build`, `npm test`, `npm run lint`, and `npm run verify`
+(`nx affected -t lint test build`).
 
 ---
 
