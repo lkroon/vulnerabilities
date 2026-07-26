@@ -119,3 +119,37 @@ process — `nx run-many -t serve --projects=api,web`, now wrapped as `npm run d
 Angular dev server returns 200 for a missing API route, and `nx serve` reports
 success while serving nothing. Trusting exit codes and status codes over observed
 behaviour is the single most repeated mistake so far. Check the artifact.
+
+---
+
+## 2026-07-26 — Agent shipped a known race into CI rather than resolving it
+
+**What:** to make web-e2e a real integration test, the agent added the API to
+Playwright's `webServer` array with `reuseExistingServer: true`. All three
+web-e2e tests then failed in CI with `[vite] http proxy error:
+/api/orgs/acme/projects` repeated nine times.
+
+**Cause:** `nx run-many -t e2e` runs both e2e projects in parallel. api-e2e
+starts the API on :3000 through `dependsOn: ["api:build", "api:serve"]`;
+web-e2e's Playwright saw :3000 already up and reused it rather than starting its
+own; api-e2e then finished and its generated `global-teardown.ts` called
+`killPort(3000)`, destroying the server web-e2e was mid-way through using.
+
+The underlying defect is that the teardown killed a server it never started —
+Nx owns that process, not Jest.
+
+**Fix:** removed `killPort` from the teardown, and made the CI e2e step serial
+(`--parallel=1`) so two processes never race to start the same continuous task.
+
+**Where the agent was actually at fault:** it identified this exact risk before
+writing the change — noting that Playwright would spawn a nested `nx serve`
+while the outer `nx run-many` was running, and that this was the same
+cross-process contention already recorded in the entry above — then shipped it
+anyway because it could not run Playwright locally (missing `libnspr4.so`,
+requiring sudo). Naming a risk is not mitigating it. The correct move was either
+to make the design not share :3000, or to say plainly that the step was unproven
+_before_ it reached CI rather than after.
+
+**Generalisation:** an unverifiable change is not the same as a verified one.
+When local verification is impossible, either reduce the change until it is
+verifiable, or state the uncertainty as a blocker rather than a footnote.

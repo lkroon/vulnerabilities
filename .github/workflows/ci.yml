@@ -41,6 +41,9 @@ jobs:
       # one project, see apps/web-e2e/playwright.config.mts.
       - run: npx playwright install --with-deps chromium
 
-      # api-e2e starts the API via dependsOn; web-e2e starts the web app via
-      # its playwright webServer block. Neither needs a service container yet.
-      - run: npx nx run-many -t e2e
+      # Serial on purpose. Both e2e projects want the API on :3000 - api-e2e via
+      # `dependsOn: api:serve`, web-e2e via its Playwright `webServer`. Running
+      # them concurrently means two processes race to start the same continuous
+      # task, and Nx dedupes the loser into "waiting in another nx process"
+      # rather than serving. One at a time removes the contention entirely.
+      - run: npx nx run-many -t e2e --parallel=1

@@ -1,7 +1,5 @@
 import { waitForPortOpen } from '@nx/node/utils';
 
-/* eslint-disable */
-
 // This file has an import, so it is a module - a bare `var` would be
 // module-scoped and type nothing. `declare global` is what actually augments
 // globalThis for global-teardown.ts, and it satisfies `noUnusedLocals`

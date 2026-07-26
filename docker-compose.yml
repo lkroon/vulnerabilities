@@ -1,0 +1,61 @@
+# Local development dependencies only.
+#
+# Deliberately no Dockerfile for api/web: the deployment target is AWS
+# serverless (SPEC.md §12) - Nest ships as a Lambda zip, Angular as a static
+# bundle on S3/CloudFront. Containerising the apps would build an artifact that
+# never reaches production and create a second run path that drifts from the
+# real one. DynamoDB is the part that genuinely needs a container locally.
+
+services:
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    container_name: config-scanner-dynamodb
+    # -sharedDb: one shared database regardless of credentials/region, so the
+    # app, the seed script and dynamodb-admin all see the same tables.
+    command: ['-jar', 'DynamoDBLocal.jar', '-sharedDb', '-dbPath', './data']
+    working_dir: /home/dynamodblocal
+    # The image runs as uid 1000 (dynamodblocal), but Docker creates the named
+    # volume owned by root, so SQLite cannot open its database file and every
+    # query hangs while the port still accepts connections. Running as root is
+    # the documented workaround for this image and is local-only.
+    user: root
+    ports:
+      - '8000:8000'
+    volumes:
+      - dynamodb-data:/home/dynamodblocal/data
+    healthcheck:
+      # Deliberately calls ListTables rather than checking the port. An unsigned
+      # GET returns 400 without ever touching SQLite, so a port check reports
+      # healthy while the database is unusable. DynamoDB Local does not verify
+      # signatures - only that the headers are present.
+      test:
+        [
+          'CMD-SHELL',
+          'curl -s -X POST http://localhost:8000/ -H "Content-Type: application/x-amz-json-1.0" -H "X-Amz-Target: DynamoDB_20120810.ListTables" -H "Authorization: AWS4-HMAC-SHA256 Credential=local/20260101/local/dynamodb/aws4_request, SignedHeaders=host, Signature=local" -d "{}" | grep -q TableNames',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+  # Browse the single-table design while building it (SPEC.md §5). Seeing
+  # heterogeneous items share one table is the clearest way to sanity-check the
+  # key design.
+  dynamodb-admin:
+    image: aaronshaf/dynamodb-admin:latest
+    container_name: config-scanner-dynamodb-admin
+    ports:
+      - '8001:8001'
+    environment:
+      DYNAMO_ENDPOINT: http://dynamodb:8000
+      AWS_REGION: eu-west-1
+      # Local-only placeholders. DynamoDB Local requires credentials to be
+      # present but does not validate them. Never real keys - see SPEC.md §9.
+      AWS_ACCESS_KEY_ID: local
+      AWS_SECRET_ACCESS_KEY: local
+    depends_on:
+      dynamodb:
+        condition: service_healthy
+
+volumes:
+  dynamodb-data:
