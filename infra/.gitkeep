@@ -1,0 +1,2 @@
+# Pulumi program lands here at M4 (SPEC.md §8).
+# Cost guardrails are provisioned BEFORE any workload - see CLAUDE.md.
