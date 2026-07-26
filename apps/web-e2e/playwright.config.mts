@@ -29,13 +29,31 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },
-  /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'npx nx run web:serve',
-    url: 'http://localhost:4200',
-    reuseExistingServer: true,
-    cwd: workspaceRoot,
-  },
+  /*
+   * Both servers, not just the web app. The suite asserts on data served by
+   * Nest and proxied through the Angular dev server, so starting only `web`
+   * would test the error state rather than the integration.
+   *
+   * `reuseExistingServer` keeps this safe when api-e2e has already started the
+   * API via its own `dependsOn`, and when a developer already has `npm run dev`
+   * running.
+   */
+  webServer: [
+    {
+      command: 'npx nx run api:serve',
+      url: 'http://localhost:3000/api',
+      reuseExistingServer: true,
+      cwd: workspaceRoot,
+      timeout: 120_000,
+    },
+    {
+      command: 'npx nx run web:serve',
+      url: 'http://localhost:4200',
+      reuseExistingServer: true,
+      cwd: workspaceRoot,
+      timeout: 120_000,
+    },
+  ],
   projects: [
     // Chromium only. SPEC.md §61 asks for one happy-path E2E to prove the habit,
     // not a cross-browser matrix — and each extra browser is another download in
