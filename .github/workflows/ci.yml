@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # nx affected needs history to compute a base
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          # single source of truth with local dev - see .nvmrc
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - run: npm ci
+
+      # --all rather than --base: deterministic, and correct on both
+      # pull_request and push-to-main, where no diff base exists.
+      - run: npx nx format:check --all
+
+      - run: npx nx run-many -t lint test build
+
+      # Playwright needs a browser present. Chromium only - the config declares
+      # one project, see apps/web-e2e/playwright.config.mts.
+      - run: npx playwright install --with-deps chromium
+
+      # api-e2e starts the API via dependsOn; web-e2e starts the web app via
+      # its playwright webServer block. Neither needs a service container yet.
+      - run: npx nx run-many -t e2e
