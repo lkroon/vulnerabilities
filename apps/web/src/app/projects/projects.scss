@@ -36,6 +36,12 @@ h1 {
     border-color: #999;
   }
 
+  &__main {
+    display: grid;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
   &__name {
     font-weight: 600;
   }
@@ -54,7 +60,6 @@ h1 {
   }
 
   &__scanned {
-    grid-column: 1 / -1;
     font-size: 0.75rem;
     color: #888;
   }
