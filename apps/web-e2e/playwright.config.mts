@@ -31,23 +31,36 @@ export default defineConfig({
   },
   /*
    * Both servers, not just the web app. The suite asserts on data served by
-   * Nest and proxied through the Angular dev server, so starting only `web`
-   * would test the error state rather than the integration.
+   * Nest and proxied through the web server, so starting only `web` would test
+   * the error state rather than the integration.
    *
-   * `reuseExistingServer` keeps this safe when api-e2e has already started the
-   * API via its own `dependsOn`, and when a developer already has `npm run dev`
-   * running.
+   * Deliberately NOT `nx run ...:serve` commands: Playwright spawns the
+   * webServer as a child of the e2e task, and a nested nx invocation overlaps
+   * the parent's task graph (shared-types:build is built for api-e2e in the
+   * same run). Nx's recursion guard then refuses the overlap and every test
+   * fails before starting. Plain node processes have no Nx graph — the API
+   * runs the built bundle directly, the web app is served by
+   * static-server.mjs with an SPA fallback and an /api proxy.
+   *
+   * `reuseExistingServer` keeps this safe when a developer already has
+   * `npm run dev` running: the probe hits the real dev servers first.
    */
   webServer: [
     {
-      command: 'npx nx run api:serve',
+      command: 'node dist/apps/api/main.js',
       url: 'http://localhost:3000/api',
       reuseExistingServer: true,
       cwd: workspaceRoot,
       timeout: 120_000,
+      env: {
+        DYNAMODB_TABLE: 'config-scanner',
+        DYNAMODB_ENDPOINT: 'http://localhost:8000',
+        AWS_REGION: 'eu-west-1',
+        PORT: '3000',
+      },
     },
     {
-      command: 'npx nx run web:serve',
+      command: 'node apps/web-e2e/src/static-server.mjs',
       url: 'http://localhost:4200',
       reuseExistingServer: true,
       cwd: workspaceRoot,

@@ -5,12 +5,14 @@ immutable snapshot, and surfaces findings plus drift over time in a dashboard.
 
 Domain deliberately chosen to overlap with shift-left security and IaC scanning.
 
-> **Status: M3 complete.** The domain is real — scan ingestion, a rule engine over
-> `package-lock.json`, the single-table key design on DynamoDB, and seed data
-> including the oversized-findings escape hatch. All four screens ship: project
-> list, project detail with drift chart, scan detail with severity-grouped
-> findings rendered through the `Finding` discriminated union, and the package
-> blast-radius lookup. AWS deployment is M4.
+> **Status: M4 in progress — infrastructure.** The domain is real — scan
+> ingestion, a rule engine over `package-lock.json`, the single-table key design
+> on DynamoDB, and seed data including the oversized-findings escape hatch. All
+> four screens ship: project list, project detail with drift chart, scan detail
+> with severity-grouped findings rendered through the `Finding` discriminated
+> union, and the package blast-radius lookup. The Pulumi program is written
+> (dev + prod stacks, Cognito auth, cost guardrails) — deployment needs AWS
+> credentials, which this repo never contains.
 > `SPEC.md` holds the full design reasoning. `CLAUDE.md` holds the working rules.
 
 ---
@@ -109,9 +111,10 @@ curl -s -X POST localhost:3000/api/projects/demo/scans \
   -F manifest=@package-lock.json -F commit=a3f19c2
 ```
 
-Auth is not wired up yet. SPEC.md §254 requires every endpoint to be
-authenticated, and that lands with Cognito in M4 — the write paths above are
-open until then, which is why nothing is deployed.
+Auth: local development is open (nothing is reachable from the internet). The
+deployed stack authenticates every request through Cognito — the API Gateway
+JWT authorizer rejects anything without a valid token, and the web app signs in
+through the hosted UI. See "Deploying" below.
 
 ---
 
@@ -190,8 +193,8 @@ project list and the drift chart read.
 The seed data includes one scan that spills, so the escape hatch is exercised
 rather than described, and there is an e2e test that uploads a manifest large
 enough to trigger it and reads the findings back through the API. Locally the
-store is the filesystem; in M4 it becomes S3, behind the same two-method
-interface.
+store is the filesystem; deployed it is a private S3 bucket behind the same
+two-method interface, selected by one environment variable (`FINDINGS_BUCKET`).
 
 ### Immutability enforced by the database, not by convention
 
@@ -232,13 +235,42 @@ the cost of configuration living outside the IaC.
 
 A hard ceiling of $10 was set before any infrastructure was written, and the
 guardrails are part of the Pulumi program rather than a monitoring habit: budget
-alarms at $5 and $10, Lambda reserved concurrency cap, DynamoDB on-demand maximum
-throughput caps, 7-day log retention, API Gateway throttling, and nothing that
+alarms at $5 and $10 (emailed), Lambda reserved concurrency cap, DynamoDB
+capacity caps, 7-day log retention, API Gateway throttling, and nothing that
 bills per-hour while idle.
 
 The reasoning: at portfolio traffic the steady-state bill is negligible, so the
 real risk is a runaway loop or a log explosion — a failure mode that caps prevent
 and that watching a dashboard does not.
+
+**One compromise:** the SPEC asked for "DynamoDB on-demand maximum throughput
+caps", which AWS does not offer — on-demand mode has no ceiling, and neither does
+any other AWS service. The table therefore runs in provisioned mode with
+Application Auto Scaling between 1 and a configurable maximum (dev 5/5, prod
+20/10 RCU/WCU). Auto scaling keeps the common case at the minimum; the cap is
+the point. Idle cost is pennies a month.
+
+### Pulumi rather than Helm or ArgoCD
+
+The alternatives run on the existing k8s cluster and are the more familiar
+answer for a repo's _application_ deployment. This repo also deploys the
+_platform_ — a DynamoDB table, a Cognito pool, an API gateway, IAM roles, a
+budget — and that is the difference:
+
+- Helm packages applications into charts; it has no opinion about a table or a
+  budget. ArgoCD synchronises a cluster's desired state; its "cluster" is
+  Kubernetes. Pulumi expresses the same desired-state idea — declarative,
+  diff-driven, converge-on-every-run — extended from cluster resources to cloud
+  resources, in a real language with types and loops instead of YAML templating.
+- The table and the Lambda role are created _by the same program_ as the
+  application, which is what makes least-privilege IAM a fact rather than a
+  chore: the role policy is built from the ARNs the same run creates, so the
+  policy cannot drift from the resources.
+- **The honest tradeoff:** a k8s deployment has one operational model for
+  everything and a rich ecosystem; Pulumi here trades that for zero
+  always-on compute and a true single-stack view of the whole bill. This app
+  has no need for a cluster's scheduling or autoscaling — it _is_ serverless.
+  The k8s option remains the right answer for the workload that needs it.
 
 ### Why the TypeScript setup looks unusual
 
@@ -249,6 +281,62 @@ initialise against it. The workspace uses the classic `paths` mapping instead.
 This is a tooling constraint rather than a preference, but it is load-bearing —
 re-adding `workspaces` to `package.json` or the `@nx/js/typescript` plugin to
 `nx.json` will break the Angular build.
+
+---
+
+## Deploying
+
+Everything below assumes AWS credentials with permission to create the
+resources in `infra/` — the repo itself contains no credentials, by design
+(SPEC.md §9).
+
+### One-time setup
+
+```sh
+# Pulumi CLI (or: brew install pulumi / winget install Pulumi.Pulumi)
+curl -fsSL https://get.pulumi.com | sh
+
+# Pulumi Cloud backend for state + CI (free tier). Then, in infra/:
+cd infra && npm install
+pulumi stack init dev          # and: pulumi stack init prod
+# The budget alarm email is a required secret, never committed:
+pulumi config set budgetNotifyEmail you@example.com --secret
+# GitHub secrets for CI: PULUMI_ACCESS_TOKEN, AWS_ROLE_ARN (OIDC role with
+# permission to run the program), or static AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY.
+```
+
+### Deploy
+
+```sh
+# 1. Build the artifacts the program packages (web bundle, Lambda zip):
+cd .. && npx nx run web:build && bash scripts/package-lambda.sh
+# 2. Deploy dev or prod — one command creates the whole stack: infrastructure,
+#    Lambda code, web assets, and config.json (stack outputs feed the app):
+cd infra && pulumi up --stack dev
+# The URL is in the stack outputs: webUrl, apiUrl, cognitoPoolId, ...
+```
+
+CI mirrors this: `pulumi preview` comments on every PR, `pulumi up --stack prod`
+runs on merge to `main` (`.github/workflows/ci.yml`).
+
+### Destroy
+
+Buckets must be emptied first or AWS refuses (S3 buckets with objects do not
+delete). The Pulumi program owns the buckets, so the one-time step is:
+
+```sh
+aws s3 rm s3://config-scanner-web-prod --recursive
+aws s3 rm s3://config-scanner-findings-prod --recursive
+pulumi destroy --stack prod
+```
+
+### The bill, bounded
+
+Steady state is roughly $0–1/month (Lambda/CloudFront/DynamoDB free tiers,
+provisioned DynamoDB idling at 1 RCU/WCU). The failure mode that matters — a
+runaway loop — is bounded by construction: Lambda reserved concurrency (dev 1 /
+prod 2), gateway throttling (dev 5 rps / prod 20 rps), autoscaling caps on the
+table, 7-day log retention, and budget alarms emailed at $5 and $10.
 
 ---
 
@@ -263,8 +351,8 @@ documented, beats a half-finished platform.
 - **One manifest type is implemented.** `package-lock.json` is parsed and scanned;
   Terraform and Dockerfile findings are modelled in the shared types and present
   in the seed data, but nothing produces them yet.
-- **No auth.** Every endpoint is open until Cognito lands in M4, which is why
-  nothing is deployed.
+- **Auth is Cognito-only** — hosted UI, no MFA, no device flow. Fine for a
+  portfolio demo, not for a product.
 - **No git provider integration** — manifests are uploaded, not pulled from webhooks.
 - **Multi-tenancy stops at an org partition key.**
 - No remediation workflow, ticketing, or notifications.

@@ -85,3 +85,77 @@ jobs:
       # task, and Nx dedupes the loser into "waiting in another nx process"
       # rather than serving. One at a time removes the contention entirely.
       - run: npx nx run-many -t e2e --parallel=1
+
+  # ── M4: infrastructure ─────────────────────────────────────────────────────
+  #
+  # Both jobs gate on PULUMI_ACCESS_TOKEN so the pipeline stays green until the
+  # secrets are wired (README "Deploying"): Pulumi Cloud for state, AWS via
+  # OIDC with a least-privilege role (SPEC.md §257).
+
+  infra-preview:
+    if: ${{ secrets.PULUMI_ACCESS_TOKEN != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - run: npm ci
+
+      # The Pulumi program reads build artifacts (dist/apps/web, dist/apps/api)
+      # — preview computes the plan against the real stack, so the artifacts
+      # must be current.
+      - run: npx nx run web:build
+      - run: bash scripts/package-lambda.sh
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-west-1
+
+      - uses: pulumi/actions@v5
+        with:
+          command: preview
+          stack-name: dev
+          comment-on-pr: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pulumi-request-duration: 15m
+
+  deploy:
+    if: ${{ github.ref == 'refs/heads/main' && secrets.PULUMI_ACCESS_TOKEN != '' }}
+    runs-on: ubuntu-latest
+    needs: main
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: npx nx run web:build
+      - run: bash scripts/package-lambda.sh
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-west-1
+
+      # `pulumi up` deploys the full stack: infrastructure, Lambda code, web
+      # assets and the runtime config.json (SPEC.md §8 — stack outputs feed
+      # app configuration).
+      - uses: pulumi/actions@v5
+        with:
+          command: up
+          stack-name: prod
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pulumi-request-duration: 15m
