@@ -5,10 +5,12 @@ immutable snapshot, and surfaces findings plus drift over time in a dashboard.
 
 Domain deliberately chosen to overlap with shift-left security and IaC scanning.
 
-> **Status: M2 complete.** The domain is real — scan ingestion, a rule engine over
+> **Status: M3 complete.** The domain is real — scan ingestion, a rule engine over
 > `package-lock.json`, the single-table key design on DynamoDB, and seed data
-> including the oversized-findings escape hatch. Frontend screens beyond the
-> project list are M3; AWS deployment is M4.
+> including the oversized-findings escape hatch. All four screens ship: project
+> list, project detail with drift chart, scan detail with severity-grouped
+> findings rendered through the `Finding` discriminated union, and the package
+> blast-radius lookup. AWS deployment is M4.
 > `SPEC.md` holds the full design reasoning. `CLAUDE.md` holds the working rules.
 
 ---
