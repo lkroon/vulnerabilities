@@ -13,14 +13,6 @@ h1 {
   margin: 0 0 1.5rem;
 }
 
-.state {
-  color: #666;
-
-  &--error {
-    color: #b3261e;
-  }
-}
-
 .project-list {
   list-style: none;
   margin: 0;
@@ -37,6 +29,12 @@ h1 {
   padding: 0.875rem 1rem;
   border: 1px solid #e0e0e0;
   border-radius: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover {
+    border-color: #999;
+  }
 
   &__name {
     font-weight: 600;
@@ -59,29 +57,5 @@ h1 {
     grid-column: 1 / -1;
     font-size: 0.75rem;
     color: #888;
-  }
-}
-
-.pill {
-  font-size: 0.75rem;
-  padding: 0.125rem 0.5rem;
-  border-radius: 1rem;
-  white-space: nowrap;
-  color: #fff;
-
-  &--critical {
-    background: #b3261e;
-  }
-  &--high {
-    background: #d97706;
-  }
-  &--medium {
-    background: #b59f00;
-  }
-  &--low {
-    background: #6b7280;
-  }
-  &--clean {
-    background: #2e7d32;
   }
 }
