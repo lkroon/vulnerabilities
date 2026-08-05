@@ -28,3 +28,27 @@ export interface ProjectSummary {
 export interface ListProjectsResponse {
   projects: ProjectSummary[];
 }
+
+/**
+ * Request body of `POST /api/orgs/:orgId/projects` (SPEC.md §220).
+ *
+ * `orgId` is not in the body — it is in the path, and accepting it twice invites
+ * the two to disagree. The API declares a `class-validator` DTO that
+ * `implements` this interface rather than redeclaring the fields (CLAUDE.md):
+ * decorators cannot live here without dragging `class-validator` into the
+ * Angular bundle, but `implements` still makes a contract change a compile
+ * error on both sides.
+ */
+export interface CreateProjectRequest {
+  /** URL-safe identifier, unique within the org. Becomes the `PROJECT#` key. */
+  projectId: string;
+  name: string;
+  /** `owner/repo`, e.g. `acme/api-gateway`. */
+  repo: string;
+  defaultBranch: string;
+}
+
+/** Response of `POST /api/orgs/:orgId/projects`. */
+export interface CreateProjectResponse {
+  project: ProjectSummary;
+}
