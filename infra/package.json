@@ -1,0 +1,19 @@
+{
+  "name": "@config-scanner/infra",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "preview": "pulumi preview",
+    "up": "pulumi up",
+    "destroy": "pulumi destroy"
+  },
+  "dependencies": {
+    "@pulumi/aws": "^7.40.0",
+    "@pulumi/pulumi": "^3.256.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "~5.7.2"
+  }
+}

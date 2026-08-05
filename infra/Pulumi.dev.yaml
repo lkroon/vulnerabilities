@@ -1,0 +1,12 @@
+config:
+  aws:region: eu-west-1
+  config-scanner-infra:region: eu-west-1
+  config-scanner-infra:budgetAmount: "5"
+  config-scanner-infra:cognitoDomain: config-scanner-dev
+  config-scanner-infra:dbReadMax: "5"
+  config-scanner-infra:dbWriteMax: "5"
+  config-scanner-infra:lambdaConcurrency: "1"
+  config-scanner-infra:apiRateLimit: "5"
+  config-scanner-infra:apiBurstLimit: "10"
+  # budgetNotifyEmail is a required secret, set per stack OUTSIDE the repo:
+  #   pulumi config set budgetNotifyEmail you@example.com --secret

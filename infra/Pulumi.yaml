@@ -1,0 +1,4 @@
+name: config-scanner-infra
+description: AWS infrastructure for Config Scanner (SPEC.md §8, §12)
+runtime: nodejs
+main: bin

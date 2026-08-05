@@ -202,3 +202,75 @@ caller's types changed beyond awaiting — but `listByOrg` returns
 both transparently in a controller, so nothing else moved. Recording it because
 "the signature does not change" was slightly too strong a claim to leave
 unqualified.
+
+---
+
+## 2026-08-05 — SPEC asked for an on-demand cap that AWS does not have
+
+**What:** SPEC.md §12a lists "DynamoDB on-demand maximum throughput caps" among
+the cost guardrails. DynamoDB on-demand mode has no maximum — the throughput
+scales to whatever the workload demands, and there is no setting to bound it.
+The instruction as written is unimplementable.
+
+**Fix:** the Pulumi program (infra/src/database.ts) uses provisioned mode with
+Application Auto Scaling between 1 and a configurable maximum (dev 5/5, prod
+20/10 RCU/WCU). Auto scaling keeps the common case at the minimum — the
+workload is bursty, not steady — while the maximum is a real ceiling. The
+README's cost section records the deviation and the reason.
+
+**Generalisation:** SPECs written before the platform exists can ask for things
+the platform does not offer. When the requirement is literally impossible, the
+_intent_ (a bounded bill) is still implementable — state the deviation in the
+same places the requirement is stated (README, code comment), and say why the
+alternative was chosen. This is also exactly the interview material M5 asks
+for: "here is where the spec was wrong and what I did instead".
+
+---
+
+## 2026-08-05 — `@nx/js:prune-lockfile` is incompatible with this workspace
+
+**What:** the M4 Lambda packaging used Nx's documented flow — build, prune
+lockfile, install prod deps. `prune-lockfile` threw
+`apps/api/package.json does not exist`: the executor requires a per-project
+package.json, and this workspace deliberately has none (deps hoisted at root,
+no `workspaces` key — CLAUDE.md).
+
+**Fix:** dropped the prune/copy targets; the webpack-generated package.json
+(derived from the bundle's actual imports) is the manifest, and the packaging
+script (`scripts/package-lambda.sh`) runs `npm install --omit=dev` in the dist
+folder against it.
+
+**Also caught while doing it:** the first attempt used `npm ci` — the pruned
+lockfile the Nx executor emits was missing transitive entries (e.g.
+`content-type`), which `npm ci` hard-fails on. `npm install` treats the
+lockfile as a source of truth and reconciles. And `npm install --prefix` from
+the repo root resolved the wrong manifest (the root's, all devDeps) — `cd` into
+the target directory instead.
+
+---
+
+## 2026-08-05 — Two express majors in one process, discovered by smoke test
+
+**What:** the Lambda package pinned `express@4.22.2` (the hoisted copy the
+bundle's `require('express')` resolves to) while `@nestjs/platform-express`
+brought its own nested express 5.2.1. Express 4.22.2's deprecated
+`app.router` getter _throws_; Nest's `ExpressAdapter.isMiddlewareApplied`
+reads it when handed an external instance, so the Lambda failed at boot with
+`'app.router' is deprecated!` — while local dev kept working (Nest's internal
+express 5 instance has no such getter).
+
+**Why the smoke test mattered:** unit tests and the local server both pass
+with the nested express 5 — the defect only exists in the packaged artifact.
+The two-minute handler probe (a synthetic API Gateway event through the real
+bundle against DynamoDB Local) is what caught it.
+
+**Fix:** the Lambda entry no longer imports express at all — it asks Nest for
+its own instance (`app.getHttpAdapter().getInstance()`), so both runtimes run
+the exact same express and a version disagreement is structurally impossible.
+The generated manifest no longer pins express directly.
+
+**Generalisation:** when one codebase runs in two runtime shapes (local server,
+packaged Lambda), the artifact, not the source, is the thing that can be wrong.
+Packaging steps deserve the same smoke test as the code — the failure appeared
+only after the webpack bundle, the pruned manifest and the prod install had all
+been assembled.

@@ -1,0 +1,11 @@
+config:
+  aws:region: eu-west-1
+  config-scanner-infra:region: eu-west-1
+  config-scanner-infra:budgetAmount: '10'
+  config-scanner-infra:cognitoDomain: config-scanner-prod
+  config-scanner-infra:dbReadMax: '20'
+  config-scanner-infra:dbWriteMax: '10'
+  config-scanner-infra:lambdaConcurrency: '2'
+  config-scanner-infra:apiRateLimit: '20'
+  config-scanner-infra:apiBurstLimit: '40'
+  # set via: pulumi config set --stack prod budgetNotifyEmail you@example.com --secret
