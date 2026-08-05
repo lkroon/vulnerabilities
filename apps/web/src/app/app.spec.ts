@@ -24,4 +24,15 @@ describe('App', () => {
 
     expect(fixture.nativeElement.querySelector('router-outlet')).toBeTruthy();
   });
+
+  it('renders navigation links to Projects and Package usage', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    const hrefs = Array.from(el.querySelectorAll('nav a')).map((a) =>
+      a.getAttribute('href'),
+    );
+    expect(hrefs).toEqual(['/', '/packages']);
+  });
 });
