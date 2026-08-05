@@ -11,4 +11,14 @@ export const appRoutes: Route[] = [
     loadComponent: () =>
       import('./project-detail/project-detail').then((m) => m.ProjectDetail),
   },
+  {
+    path: 'projects/:projectId/scans/:scannedAt',
+    loadComponent: () =>
+      import('./scan-detail/scan-detail').then((m) => m.ScanDetail),
+  },
+  {
+    path: 'packages',
+    loadComponent: () =>
+      import('./packages/packages').then((m) => m.Packages),
+  },
 ];

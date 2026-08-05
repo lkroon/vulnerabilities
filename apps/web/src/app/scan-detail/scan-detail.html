@@ -1,0 +1,35 @@
+<section class="scan-detail">
+  <a class="back-link" [routerLink]="['/projects', projectId()]"
+    >← Back to project</a
+  >
+  <h1>{{ projectId() }} — {{ scannedAt() | date: 'medium' }}</h1>
+
+  @if (loading()) {
+  <p class="state">Loading findings…</p>
+  } @else if (failed()) {
+  <p class="state state--error">Could not load scan.</p>
+  } @else if (scan(); as scan) {
+  <p class="meta">
+    {{ scan.manifest }} · {{ scan.findingCount }} findings · {{ scan.durationMs
+    }} ms @if (scan.findingsExternal) { · findings spilled to object storage }
+  </p>
+
+  @if (scan.findings.length === 0) {
+  <p class="state">Clean scan — no findings.</p>
+  } @else {
+  <div class="groups">
+    @for (group of groups(); track group.severity) { @if
+    (group.findings.length > 0) {
+    <section class="group">
+      <h2 class="group__heading">
+        <span class="pill pill--{{ group.severity }}">{{ group.severity }}</span>
+        <span class="group__count">{{ group.findings.length }}</span>
+      </h2>
+      @for (finding of group.findings; track finding) {
+      <cs-finding-item [finding]="finding" />
+      }
+    </section>
+    } }
+  </div>
+  } }
+</section>
