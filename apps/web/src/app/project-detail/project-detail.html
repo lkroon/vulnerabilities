@@ -1,0 +1,40 @@
+<section class="project-detail">
+  <a class="back-link" routerLink="/">← Projects</a>
+  <h1>{{ project()?.name ?? projectId() }}</h1>
+  @if (project(); as p) {
+  <p class="repo">{{ p.repo }}</p>
+  } @if (loading()) {
+  <p class="state">Loading scans…</p>
+  } @else if (failed()) {
+  <p class="state state--error">Could not load scan history.</p>
+  } @else if (scans().length === 0) {
+  <p class="state">No scans yet.</p>
+  } @else {
+  <cs-drift-chart [scans]="scans()" />
+
+  <ul class="scan-list">
+    @for (scan of scans(); track scan.scannedAt) {
+    <li>
+      <a
+        class="scan-link"
+        [routerLink]="['/projects', projectId(), 'scans', scan.scannedAt]"
+      >
+        <span class="scan-link__date"
+          >{{ scan.scannedAt | date: 'medium' }}</span
+        >
+        <span class="scan-link__counts">
+          @for (severity of severities; track severity) { @if
+          (scan.counts[severity] > 0) {
+          <span class="pill pill--{{ severity }}">
+            {{ scan.counts[severity] }} {{ severity }}
+          </span>
+          } } @if (total(scan.counts) === 0) {
+          <span class="pill pill--clean">clean</span>
+          }
+        </span>
+      </a>
+    </li>
+    }
+  </ul>
+  }
+</section>

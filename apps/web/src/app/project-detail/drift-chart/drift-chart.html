@@ -1,0 +1,31 @@
+<figure class="drift-chart">
+  <svg
+    class="drift-chart__svg"
+    [attr.viewBox]="'0 0 ' + layout().width + ' ' + layout().height"
+    preserveAspectRatio="none"
+    role="img"
+    [attr.aria-label]="
+      'Findings by severity across ' + layout().bars.length + ' scans'
+    "
+  >
+    @for (bar of layout().bars; track bar.scannedAt) { @for (segment of
+    bar.segments; track segment.severity) {
+    <rect
+      class="drift-chart__segment drift-chart__segment--{{
+        segment.severity
+      }}"
+      [attr.x]="bar.x"
+      [attr.y]="segment.y"
+      [attr.width]="layout().barWidth"
+      [attr.height]="segment.height"
+    />
+    } }
+  </svg>
+  <div class="drift-chart__axis">
+    @for (bar of layout().bars; track bar.scannedAt) {
+    <span class="drift-chart__label" [style.width.px]="layout().barWidth"
+      >{{ bar.scannedAt | date: 'M/d' }}</span
+    >
+    }
+  </div>
+</figure>

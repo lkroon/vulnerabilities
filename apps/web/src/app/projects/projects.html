@@ -12,27 +12,28 @@
   } @else {
   <ul class="project-list">
     @for (project of projects(); track project.projectId) {
-    <li class="project">
-      <div class="project__id">
-        <span class="project__name">{{ project.name }}</span>
-        <span class="project__repo">{{ project.repo }}</span>
-      </div>
-
-      <div class="project__counts">
-        @for (severity of severities; track severity) { @if
-        (project.counts[severity] > 0) {
-        <span class="pill pill--{{ severity }}">
-          {{ project.counts[severity] }} {{ severity }}
+    <li>
+      <a class="project" [routerLink]="['/projects', project.projectId]">
+        <span class="project__main">
+          <span class="project__name">{{ project.name }}</span>
+          <span class="project__repo">{{ project.repo }}</span>
+          <span class="project__scanned">
+            @if (project.latestScanAt) { scanned {{ project.latestScanAt | date:
+            'short' }} } @else { never scanned }
+          </span>
         </span>
-        } } @if (total(project.counts) === 0) {
-        <span class="pill pill--clean">clean</span>
-        }
-      </div>
 
-      <div class="project__scanned">
-        @if (project.latestScanAt) { scanned {{ project.latestScanAt | date:
-        'short' }} } @else { never scanned }
-      </div>
+        <span class="project__counts">
+          @for (severity of severities; track severity) { @if
+          (project.counts[severity] > 0) {
+          <span class="pill pill--{{ severity }}">
+            {{ project.counts[severity] }} {{ severity }}
+          </span>
+          } } @if (total(project.counts) === 0) {
+          <span class="pill pill--clean">clean</span>
+          }
+        </span>
+      </a>
     </li>
     }
   </ul>
