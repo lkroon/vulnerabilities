@@ -7,13 +7,44 @@ function finding(
 ): Finding {
   switch (kind) {
     case 'npm_cve':
-      return { kind, severity, package: 'lodash', version: '4.17.20', cve: 'CVE-2021-23337', fixedIn: null, path: ['api-gateway', 'lodash'] };
+      return {
+        kind,
+        severity,
+        package: 'lodash',
+        version: '4.17.20',
+        cve: 'CVE-2021-23337',
+        fixedIn: null,
+        path: ['api-gateway', 'lodash'],
+      };
     case 'npm_supply_chain':
-      return { kind, severity, package: 'acme-internal-utils', version: '1.4.0', rule: 'NPM-SRC-001', message: 'resolved from git', resolved: 'git+ssh://git@example.com/x.git' };
+      return {
+        kind,
+        severity,
+        package: 'acme-internal-utils',
+        version: '1.4.0',
+        rule: 'NPM-SRC-001',
+        message: 'resolved from git',
+        resolved: 'git+ssh://git@example.com/x.git',
+      };
     case 'terraform_misconfig':
-      return { kind, severity, resource: 'aws_s3_bucket.logs', rule: 'S3-001', message: 'public read', file: 'main.tf', line: 42 };
+      return {
+        kind,
+        severity,
+        resource: 'aws_s3_bucket.logs',
+        rule: 'S3-001',
+        message: 'public read',
+        file: 'main.tf',
+        line: 42,
+      };
     case 'dockerfile':
-      return { kind, severity, rule: 'DL3007', message: 'using latest', file: 'Dockerfile', line: 1 };
+      return {
+        kind,
+        severity,
+        rule: 'DL3007',
+        message: 'using latest',
+        file: 'Dockerfile',
+        line: 1,
+      };
   }
 }
 

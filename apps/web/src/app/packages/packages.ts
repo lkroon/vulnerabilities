@@ -81,9 +81,9 @@ export class Packages {
         // still in flight.
         return concat(
           of<UsageState>(LOADING),
-          this.api.usage(query.name, query.version).pipe(
-            catchError(() => of<UsageState>(null)),
-          ),
+          this.api
+            .usage(query.name, query.version)
+            .pipe(catchError(() => of<UsageState>(null))),
         );
       }),
     ),
@@ -94,9 +94,7 @@ export class Packages {
   protected readonly failed = computed(() => this.state() === null);
   protected readonly result = computed(() => {
     const state = this.state();
-    return state === IDLE || state === LOADING || state === null
-      ? null
-      : state;
+    return state === IDLE || state === LOADING || state === null ? null : state;
   });
 
   protected submit(): void {

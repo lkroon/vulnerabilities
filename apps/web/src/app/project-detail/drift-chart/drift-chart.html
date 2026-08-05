@@ -23,9 +23,9 @@
   </svg>
   <div class="drift-chart__axis">
     @for (bar of layout().bars; track bar.scannedAt) {
-    <span class="drift-chart__label" [style.width.px]="layout().barWidth">{{
-      bar.scannedAt | date: 'M/d'
-    }}</span>
+    <span class="drift-chart__label" [style.width.px]="layout().barWidth"
+      >{{ bar.scannedAt | date: 'M/d' }}</span
+    >
     }
   </div>
 </figure>

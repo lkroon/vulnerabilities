@@ -52,16 +52,14 @@ describe('Packages', () => {
     fillAndSubmit(fixture, 'lodash', '4.17.20');
     fixture.detectChanges();
 
-    httpMock
-      .expectOne('/api/packages/lodash/4.17.20/usage')
-      .flush({
-        package: 'lodash',
-        version: '4.17.20',
-        projects: [
-          { orgId: 'acme', projectId: 'api-gateway', lastSeen: '2026-07-24' },
-          { orgId: 'acme', projectId: 'billing-worker', lastSeen: '2026-07-22' },
-        ],
-      });
+    httpMock.expectOne('/api/packages/lodash/4.17.20/usage').flush({
+      package: 'lodash',
+      version: '4.17.20',
+      projects: [
+        { orgId: 'acme', projectId: 'api-gateway', lastSeen: '2026-07-24' },
+        { orgId: 'acme', projectId: 'billing-worker', lastSeen: '2026-07-22' },
+      ],
+    });
     fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
@@ -76,13 +74,11 @@ describe('Packages', () => {
     fillAndSubmit(fixture, '@angular/core', '15.2.0');
     fixture.detectChanges();
 
-    httpMock
-      .expectOne('/api/packages/%40angular%2Fcore/15.2.0/usage')
-      .flush({
-        package: '@angular/core',
-        version: '15.2.0',
-        projects: [],
-      });
+    httpMock.expectOne('/api/packages/%40angular%2Fcore/15.2.0/usage').flush({
+      package: '@angular/core',
+      version: '15.2.0',
+      projects: [],
+    });
     fixture.detectChanges();
   });
 

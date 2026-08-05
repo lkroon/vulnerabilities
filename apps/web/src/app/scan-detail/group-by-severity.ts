@@ -22,9 +22,7 @@ export interface SeverityGroup {
  * template skips empty groups rather than this helper dropping them. That keeps
  * the four headings stable and lets the template decide.
  */
-export function groupBySeverity(
-  findings: readonly Finding[],
-): SeverityGroup[] {
+export function groupBySeverity(findings: readonly Finding[]): SeverityGroup[] {
   return SEVERITIES.map((severity) => ({
     severity,
     findings: findings.filter((finding) => finding.severity === severity),

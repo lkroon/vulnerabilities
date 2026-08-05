@@ -1,4 +1,7 @@
-import { EMPTY_SEVERITY_COUNTS, type ScanSummary } from '@config-scanner/shared-types';
+import {
+  EMPTY_SEVERITY_COUNTS,
+  type ScanSummary,
+} from '@config-scanner/shared-types';
 import { DRIFT_CHART_BAR_GAP, layoutDriftChart } from './drift-chart-layout';
 
 function scan(

@@ -19,9 +19,9 @@
         class="scan-link"
         [routerLink]="['/projects', projectId(), 'scans', scan.scannedAt]"
       >
-        <span class="scan-link__date">{{
-          scan.scannedAt | date: 'medium'
-        }}</span>
+        <span class="scan-link__date"
+          >{{ scan.scannedAt | date: 'medium' }}</span
+        >
         <span class="scan-link__counts">
           @for (severity of severities; track severity) { @if
           (scan.counts[severity] > 0) {

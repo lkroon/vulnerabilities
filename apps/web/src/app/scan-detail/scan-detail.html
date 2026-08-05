@@ -18,11 +18,13 @@
   <p class="state">Clean scan — no findings.</p>
   } @else {
   <div class="groups">
-    @for (group of groups(); track group.severity) { @if
-    (group.findings.length > 0) {
+    @for (group of groups(); track group.severity) { @if (group.findings.length
+    > 0) {
     <section class="group">
       <h2 class="group__heading">
-        <span class="pill pill--{{ group.severity }}">{{ group.severity }}</span>
+        <span class="pill pill--{{ group.severity }}"
+          >{{ group.severity }}</span
+        >
         <span class="group__count">{{ group.findings.length }}</span>
       </h2>
       @for (finding of group.findings; track finding) {

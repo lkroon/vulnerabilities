@@ -1,6 +1,9 @@
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { EMPTY_SEVERITY_COUNTS, type ScanSummary } from '@config-scanner/shared-types';
+import {
+  EMPTY_SEVERITY_COUNTS,
+  type ScanSummary,
+} from '@config-scanner/shared-types';
 import { DriftChart } from './drift-chart';
 
 const SCANS: ScanSummary[] = [

@@ -1,9 +1,9 @@
 <section class="packages">
   <h1>Package usage</h1>
   <p class="intro">
-    Enter a vulnerable package and version to see which projects ship it —
-    blast radius (SPEC.md §226). Only packages that produced a finding are
-    indexed, so this is a lookup on vulnerable packages by design.
+    Enter a vulnerable package and version to see which projects ship it — blast
+    radius (SPEC.md §226). Only packages that produced a finding are indexed, so
+    this is a lookup on vulnerable packages by design.
   </p>
 
   <form class="lookup" [formGroup]="form" (ngSubmit)="submit()">
@@ -43,21 +43,14 @@
   } @else if (failed()) {
   <p class="state state--error">Could not look up that package.</p>
   } @else if (result(); as result) {
-  <h2 class="result-heading">
-    {{ result.package }}&#64;{{ result.version }}
-  </h2>
+  <h2 class="result-heading">{{ result.package }}&#64;{{ result.version }}</h2>
   @if (result.projects.length === 0) {
-  <p class="state">
-    No project has a vulnerable copy of this version.
-  </p>
+  <p class="state">No project has a vulnerable copy of this version.</p>
   } @else {
   <ul class="project-list">
     @for (project of result.projects; track project.projectId) {
     <li>
-      <a
-        class="project"
-        [routerLink]="['/projects', project.projectId]"
-      >
+      <a class="project" [routerLink]="['/projects', project.projectId]">
         <span class="project__name">{{ project.projectId }}</span>
         <span class="project__scanned">
           Last seen {{ project.lastSeen | date: 'mediumDate' }}

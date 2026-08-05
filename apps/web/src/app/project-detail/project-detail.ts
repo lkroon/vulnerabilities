@@ -64,7 +64,9 @@ export class ProjectDetail {
   );
 
   protected readonly severities = SEVERITIES;
-  protected readonly loading = computed(() => this.scansResponse() === undefined);
+  protected readonly loading = computed(
+    () => this.scansResponse() === undefined,
+  );
   protected readonly failed = computed(() => this.scansResponse() === null);
   protected readonly scans = computed(() => this.scansResponse()?.scans ?? []);
   protected readonly project = computed(() =>

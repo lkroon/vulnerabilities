@@ -87,17 +87,15 @@ describe('ScanDetail', () => {
     fixture.componentRef.setInput('projectId', 'api-gateway');
     fixture.componentRef.setInput('scannedAt', '2026-07-24T09:00:00Z');
     fixture.detectChanges();
-    httpMock.expectOne('/api/scans/api-gateway/2026-07-24T09%3A00%3A00Z').flush(
-      RESPONSE,
-    );
+    httpMock
+      .expectOne('/api/scans/api-gateway/2026-07-24T09%3A00%3A00Z')
+      .flush(RESPONSE);
     fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
     const groups = el.querySelectorAll('.group');
     expect(groups).toHaveLength(3);
-    expect(groups[0].querySelector('.pill')?.textContent).toContain(
-      'critical',
-    );
+    expect(groups[0].querySelector('.pill')?.textContent).toContain('critical');
     expect(groups[0].querySelector('.group__count')?.textContent).toBe('1');
     expect(groups[1].querySelector('.pill')?.textContent).toContain('high');
     expect(groups[2].querySelector('.pill')?.textContent).toContain('medium');

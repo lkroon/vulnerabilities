@@ -18,8 +18,8 @@
           <span class="project__name">{{ project.name }}</span>
           <span class="project__repo">{{ project.repo }}</span>
           <span class="project__scanned">
-            @if (project.latestScanAt) { scanned {{ project.latestScanAt |
-            date: 'short' }} } @else { never scanned }
+            @if (project.latestScanAt) { scanned {{ project.latestScanAt | date:
+            'short' }} } @else { never scanned }
           </span>
         </span>
 

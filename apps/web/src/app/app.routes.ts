@@ -18,7 +18,6 @@ export const appRoutes: Route[] = [
   },
   {
     path: 'packages',
-    loadComponent: () =>
-      import('./packages/packages').then((m) => m.Packages),
+    loadComponent: () => import('./packages/packages').then((m) => m.Packages),
   },
 ];
