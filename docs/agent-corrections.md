@@ -153,3 +153,52 @@ _before_ it reached CI rather than after.
 **Generalisation:** an unverifiable change is not the same as a verified one.
 When local verification is impossible, either reduce the change until it is
 verifiable, or state the uncertainty as a blocker rather than a footnote.
+
+---
+
+## 2026-07-26 — Every unit test passed while the scanner double-counted findings
+
+**Caught by:** running the scanner against a real `package-lock.json` (this
+repository's own) rather than the synthetic ones in the tests.
+
+**What:** the first end-to-end scan of a real 1MB lockfile reported eight
+findings, four of which were `semver@6.3.1 / CVE-2022-25883` with different
+dependency chains. The rule engine's 46 unit tests were green.
+
+**Cause:** npm nests a second copy of a package whenever two dependents need
+incompatible ranges, so a real lockfile contains `node_modules/@babel/core/
+node_modules/semver`, `node_modules/@nx/js/node_modules/semver`, and so on. Each
+is a distinct entry, each matched the advisory, and each became a finding. Every
+test fixture was hand-written and hoisted flat, so none of them contained a
+nested duplicate — the tests agreed with the code because they shared its
+assumption.
+
+**Why it mattered more than a cosmetic repeat:** severity counts are
+denormalised onto the scan and the project item, and they drive the project list
+and the drift chart. Counting one vulnerability four times does not just add
+rows, it makes the headline numbers wrong, and the drift chart would have shown
+"improvement" whenever npm happened to dedupe a tree.
+
+**Fix:** the engine now collapses findings on identity (`package@version#cve`),
+keeping the first occurrence — which, because the parser walks breadth-first, is
+the shortest dependency chain. Both a unit test with a nested duplicate and the
+real-lockfile path now cover it.
+
+**Generalisation:** this is the same failure as the four entries above, one level
+up. A green test suite is not evidence when every fixture was written by the same
+mind as the code — the fixtures encoded the belief being tested. The thing that
+found it was the cheapest possible real input: a file already sitting in the repo.
+Test data that comes from the world, not from the author, is worth more per line
+than another synthetic case.
+
+---
+
+## 2026-07-26 — Deviation worth noting: `ProjectsService` signatures became async
+
+`docs/HANDOVER.md` (now deleted) said the M1 fixture method "is designed not to
+change" when DynamoDB replaced it. The response _shape_ did not change, and no
+caller's types changed beyond awaiting — but `listByOrg` returns
+`Promise<ListProjectsResponse>` rather than `ListProjectsResponse`. Nest handles
+both transparently in a controller, so nothing else moved. Recording it because
+"the signature does not change" was slightly too strong a claim to leave
+unqualified.
