@@ -1,0 +1,30 @@
+@let f = finding();
+<article class="finding">
+  <span class="pill pill--{{ f.severity }}">{{ f.severity }}</span>
+
+  @switch (f.kind) { @case ('npm_cve') {
+  <h3 class="finding__title">
+    {{ f.package }}&#64;{{ f.version }} — {{ f.cve }}
+  </h3>
+  <p class="finding__detail">
+    @if (f.fixedIn) { Fixed in {{ f.fixedIn }}. } @else { No fix published. }
+  </p>
+  <p class="finding__path">{{ f.path.join(' → ') }}</p>
+  } @case ('npm_supply_chain') {
+  <h3 class="finding__title">
+    {{ f.package }}&#64;{{ f.version }} — {{ f.rule }}
+  </h3>
+  <p class="finding__detail">{{ f.message }}</p>
+  <p class="finding__path">{{ f.resolved }}</p>
+  } @case ('terraform_misconfig') {
+  <h3 class="finding__title">{{ f.resource }} — {{ f.rule }}</h3>
+  <p class="finding__detail">{{ f.message }}</p>
+  <p class="finding__path">{{ f.file }}:{{ f.line }}</p>
+  } @case ('dockerfile') {
+  <h3 class="finding__title">{{ f.rule }}</h3>
+  <p class="finding__detail">{{ f.message }}</p>
+  <p class="finding__path">{{ f.file }}:{{ f.line }}</p>
+  } @default {
+  <p class="finding__detail">Unrecognized finding kind: {{ finding().kind }}</p>
+  } }
+</article>

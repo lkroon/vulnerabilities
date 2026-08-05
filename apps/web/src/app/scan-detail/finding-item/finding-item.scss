@@ -1,0 +1,25 @@
+.finding {
+  padding: 0.875rem 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.5rem;
+  display: grid;
+  gap: 0.25rem;
+
+  &__title {
+    font-size: 0.9375rem;
+    margin: 0.25rem 0 0;
+  }
+
+  &__detail {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: #444;
+  }
+
+  &__path {
+    margin: 0;
+    font-size: 0.75rem;
+    color: #888;
+    font-family: ui-monospace, monospace;
+  }
+}
