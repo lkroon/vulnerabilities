@@ -8,7 +8,10 @@
     "test": "nx run-many -t test",
     "lint": "nx run-many -t lint",
     "verify": "nx affected -t lint test build",
-    "reset": "nx reset"
+    "reset": "nx reset",
+    "db:create-table": "node -r @swc-node/register apps/api/src/scripts/create-table.ts",
+    "db:seed": "node -r @swc-node/register apps/api/src/scripts/seed.ts",
+    "db:reset": "npm run db:create-table -- --recreate && npm run db:seed"
   },
   "private": true,
   "devDependencies": {
@@ -69,9 +72,13 @@
     "@angular/platform-browser": "~22.0.4",
     "@angular/platform-browser-dynamic": "~22.0.4",
     "@angular/router": "~22.0.4",
+    "@aws-sdk/client-dynamodb": "^3.1095.0",
+    "@aws-sdk/client-s3": "^3.1103.0",
+    "@aws-sdk/lib-dynamodb": "^3.1095.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
+    "@vendia/serverless-express": "^4.12.6",
     "axios": "^1.6.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",

@@ -1,0 +1,36 @@
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+
+  &__brand {
+    font-weight: 700;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  &__link--active {
+    font-weight: 600;
+  }
+
+  nav {
+    display: flex;
+    gap: 1.25rem;
+
+    a {
+      text-decoration: none;
+      color: #444;
+      font-size: 0.875rem;
+
+      &:hover {
+        color: #000;
+      }
+    }
+  }
+}

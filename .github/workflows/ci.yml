@@ -41,9 +41,121 @@ jobs:
       # one project, see apps/web-e2e/playwright.config.mts.
       - run: npx playwright install --with-deps chromium
 
+      # The e2e suites run against a real database, not a mock: the key design
+      # is the thing under test, and conditional writes, the GSI and
+      # begins_with queries are exactly what a fake would fail to reproduce.
+      #
+      # Started with `docker run` rather than as a `services:` container because
+      # the flags matter and services cannot override the image's command.
+      # -sharedDb puts every credential/region pair in one namespace, so the
+      # seed script and the API see the same tables; -inMemory keeps it to the
+      # life of the job.
+      - name: Start DynamoDB Local
+        run: |
+          docker run -d --name dynamodb-local -p 8000:8000 \
+            amazon/dynamodb-local:latest \
+            -jar DynamoDBLocal.jar -sharedDb -inMemory
+
+      # Deliberately calls ListTables rather than checking the port. An unsigned
+      # request returns 400 without ever touching the storage engine, so a port
+      # check reports ready while the database is unusable - the same trap the
+      # docker-compose healthcheck documents.
+      - name: Wait for DynamoDB Local
+        run: |
+          for i in $(seq 1 30); do
+            if curl -s -X POST http://localhost:8000/ \
+              -H "Content-Type: application/x-amz-json-1.0" \
+              -H "X-Amz-Target: DynamoDB_20120810.ListTables" \
+              -H "Authorization: AWS4-HMAC-SHA256 Credential=local/20260101/local/dynamodb/aws4_request, SignedHeaders=host, Signature=local" \
+              -d '{}' | grep -q TableNames; then
+              echo "DynamoDB Local is ready"; exit 0
+            fi
+            sleep 2
+          done
+          echo "DynamoDB Local did not become ready"; exit 1
+
+      # web-e2e asserts on the seeded projects; api-e2e creates its own data in
+      # a separate org and only needs the table to exist.
+      - run: npm run db:create-table
+      - run: npm run db:seed
+
       # Serial on purpose. Both e2e projects want the API on :3000 - api-e2e via
       # `dependsOn: api:serve`, web-e2e via its Playwright `webServer`. Running
       # them concurrently means two processes race to start the same continuous
       # task, and Nx dedupes the loser into "waiting in another nx process"
       # rather than serving. One at a time removes the contention entirely.
       - run: npx nx run-many -t e2e --parallel=1
+
+  # ── M4: infrastructure ─────────────────────────────────────────────────────
+  #
+  # Both jobs gate on PULUMI_ACCESS_TOKEN so the pipeline stays green until the
+  # secrets are wired (README "Deploying"): Pulumi Cloud for state, AWS via
+  # OIDC with a least-privilege role (SPEC.md §257).
+
+  infra-preview:
+    if: ${{ secrets.PULUMI_ACCESS_TOKEN != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - run: npm ci
+
+      # The Pulumi program reads build artifacts (dist/apps/web, dist/apps/api)
+      # — preview computes the plan against the real stack, so the artifacts
+      # must be current.
+      - run: npx nx run web:build
+      - run: bash scripts/package-lambda.sh
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-west-1
+
+      - uses: pulumi/actions@v5
+        with:
+          command: preview
+          stack-name: dev
+          comment-on-pr: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pulumi-request-duration: 15m
+
+  deploy:
+    if: ${{ github.ref == 'refs/heads/main' && secrets.PULUMI_ACCESS_TOKEN != '' }}
+    runs-on: ubuntu-latest
+    needs: main
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: npx nx run web:build
+      - run: bash scripts/package-lambda.sh
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-west-1
+
+      # `pulumi up` deploys the full stack: infrastructure, Lambda code, web
+      # assets and the runtime config.json (SPEC.md §8 — stack outputs feed
+      # app configuration).
+      - uses: pulumi/actions@v5
+        with:
+          command: up
+          stack-name: prod
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pulumi-request-duration: 15m

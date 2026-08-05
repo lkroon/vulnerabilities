@@ -5,6 +5,7 @@ import {
 import { provideHttpClient } from '@angular/common/http';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import type { ListProjectsResponse } from '@config-scanner/shared-types';
 import { Projects } from './projects';
 
@@ -45,6 +46,7 @@ describe('Projects', () => {
         provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideRouter([]),
       ],
     }).compileComponents();
 

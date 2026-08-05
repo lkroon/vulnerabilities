@@ -1,1 +1,41 @@
 /* You can add global styles to this file, and also import other style files */
+
+:root {
+  --severity-critical: #b3261e;
+  --severity-high: #d97706;
+  --severity-medium: #b59f00;
+  --severity-low: #6b7280;
+  --severity-clean: #2e7d32;
+}
+
+.state {
+  color: #666;
+
+  &--error {
+    color: #b3261e;
+  }
+}
+
+.pill {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 1rem;
+  white-space: nowrap;
+  color: #fff;
+
+  &--critical {
+    background: var(--severity-critical);
+  }
+  &--high {
+    background: var(--severity-high);
+  }
+  &--medium {
+    background: var(--severity-medium);
+  }
+  &--low {
+    background: var(--severity-low);
+  }
+  &--clean {
+    background: var(--severity-clean);
+  }
+}

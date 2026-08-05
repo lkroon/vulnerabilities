@@ -1,1 +1,16 @@
+<header class="nav">
+  <a class="nav__brand" routerLink="/">Config Scanner</a>
+  <nav>
+    <a
+      routerLink="/"
+      routerLinkActive="nav__link--active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      >Projects</a
+    >
+    <a routerLink="/packages" routerLinkActive="nav__link--active"
+      >Package usage</a
+    >
+  </nav>
+</header>
+
 <router-outlet></router-outlet>
